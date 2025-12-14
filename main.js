@@ -1,7 +1,7 @@
 const c = document.querySelector('#c');
 const ctx = c.getContext('2d');
 
-const SCALE = 10;
+const SCALE = 5;
 
 ctx.imageSmoothingEnabled = false;
 
@@ -26,6 +26,8 @@ const colors = {
 const imageData = ctx.createImageData(W, H);
 const pixels = imageData.data;
 
+let currentMaterial = SAND;
+
 const getN = (x, y) => { // get neighbours
     return [
         [x - 1, y], //L
@@ -40,36 +42,52 @@ const getN = (x, y) => { // get neighbours
 }
 
 const isEmpty = (x, y) => {
-  return (
-    x >= 0 &&
-    x < W &&
-    y >= 0 &&
-    y < H &&
-    grid[x][y] === EMPTY
-  );
+    return (
+        x >= 0 &&
+        x < W &&
+        y >= 0 &&
+        y < H &&
+        grid[x][y] === EMPTY
+    );
 };
 
 
-const updateSand = (x, y) => {
-  if (isEmpty(x, y + 1)) {
-    return [x, y + 1];          // down
-  } 
-  if (isEmpty(x - 1, y + 1)) {
-    return [x - 1, y + 1];      // down-left
-  } 
-  if (isEmpty(x + 1, y + 1)) {
-    return [x + 1, y + 1];      // down-right
-  }
+const updateSandPos = (x, y) => {
+    if (isEmpty(x, y + 1)) {
+        return [x, y + 1];          // down
+    }
+    if (isEmpty(x - 1, y + 1)) {
+        return [x - 1, y + 1];      // down-left
+    }
+    if (isEmpty(x + 1, y + 1)) {
+        return [x + 1, y + 1];      // down-right
+    }
 
-  return [x, y];
+    return [x, y];
 };
 
 
-const updateWater = (x, y) => {
+const updateWaterPos = (x, y) => {
+    if (isEmpty(x, y + 1)) {
+        return [x, y + 1];          // down
+    }
+    if (isEmpty(x - 1, y + 1)) {
+        return [x - 1, y + 1];      // down-left
+    }
+    if (isEmpty(x + 1, y + 1)) {
+        return [x + 1, y + 1];      // down-right
+    }
+    if (isEmpty(x - 1, y)) { // left
+        return [x - 1, y];
+    }
+    if (isEmpty(x + 1, y)) { // right
+        return [x + 1, y];
+    }
 
+    return [x, y];
 }
 
-const updateFire = (x, y) => {
+const updateFirePos = (x, y) => {
 
 }
 
@@ -78,16 +96,21 @@ const clear = () => {
     for (let x = 0; x < W; x++) grid[x].fill(EMPTY); // clear the canvas
 }
 
-grid[20][0] = SAND;
 
 const update = () => {
     for (let y = H - 1; y >= 0; y--) {
         for (let x = 0; x < W; x++) {
             // sand
             if (grid[x][y] === SAND) {
-                let [ux, uy] = updateSand(x, y);
+                let [ux, uy] = updateSandPos(x, y);
                 grid[x][y] = EMPTY;
                 grid[ux][uy] = SAND;
+            }
+
+            if (grid[x][y] === WATER) {
+                let [ux, uy] = updateWaterPos(x, y);
+                grid[x][y] = EMPTY;
+                grid[ux][uy] = WATER;
             }
         }
     }
@@ -117,7 +140,21 @@ c.addEventListener('mousemove', (e) => {
     const y = Math.floor(my / SCALE);
 
     if (x >= 0 && x < W && y >= 0 && y < H) {
-        grid[x][y] = SAND;
+        grid[x][y] = currentMaterial;
+    }
+});
+
+window.addEventListener('keydown', (e) => {
+    switch (e.key.toLowerCase()) {
+        case '1':
+            currentMaterial = SAND;
+            break;
+        case '2':
+            currentMaterial = WATER;
+            break;
+        case '3':
+            currentMaterial = FIRE;
+            break;
     }
 });
 
