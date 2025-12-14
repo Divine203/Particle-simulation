@@ -10,7 +10,7 @@ ctx.scale(SCALE, SCALE);
 const W = c.width / SCALE;
 const H = c.height / SCALE;
 
-const grid = Array.from({ length: W }, () => new Uint8Array(H));
+const grid = Array.from({ length: W }, () => new Uint8Array(H)); // [[]]
 
 const EMPTY = 0;
 const SAND = 1;
@@ -18,9 +18,9 @@ const WATER = 2;
 const FIRE = 3;
 
 const colors = {
-    [EMPTY]: [0, 0, 0],
-    [SAND]: [194, 178, 128],
-    [WATER]: [64, 164, 223]
+    [EMPTY]: [0, 0, 0], // 0: []
+    [SAND]: [194, 178, 128], // 1: []
+    [WATER]: [64, 164, 223] // 2: []
 };
 
 const imageData = ctx.createImageData(W, H);
@@ -30,7 +30,7 @@ const getN = (x, y) => { // get neighbours
     return [
         [x - 1, y], //L
         [x - 1, y - 1], //T-L
-        [x - 1, y + 1], //B-R
+        [x - 1, y + 1], //B-L
         [x + 1, y], //R
         [x + 1, y - 1], //T-R
         [x + 1, y + 1], //B-R
@@ -39,10 +39,31 @@ const getN = (x, y) => { // get neighbours
     ];
 }
 
-const updateSand = (x, y) => {
-    let n = getN(x, y);
+const isEmpty = (x, y) => {
+  return (
+    x >= 0 &&
+    x < W &&
+    y >= 0 &&
+    y < H &&
+    grid[x][y] === EMPTY
+  );
+};
 
-}
+
+const updateSand = (x, y) => {
+  if (isEmpty(x, y + 1)) {
+    return [x, y + 1];          // down
+  } 
+  if (isEmpty(x - 1, y + 1)) {
+    return [x - 1, y + 1];      // down-left
+  } 
+  if (isEmpty(x + 1, y + 1)) {
+    return [x + 1, y + 1];      // down-right
+  }
+
+  return [x, y];
+};
+
 
 const updateWater = (x, y) => {
 
@@ -52,30 +73,53 @@ const updateFire = (x, y) => {
 
 }
 
-let x = W/2-1;
-let y = 0;
 
-const update = () => {
-    for(let x=0;x<W;x++) grid[x].fill(EMPTY); // clear the canvas
-
-    y++;
-    grid[x][y] = SAND;
+const clear = () => {
+    for (let x = 0; x < W; x++) grid[x].fill(EMPTY); // clear the canvas
 }
 
+grid[20][0] = SAND;
+
+const update = () => {
+    for (let y = H - 1; y >= 0; y--) {
+        for (let x = 0; x < W; x++) {
+            // sand
+            if (grid[x][y] === SAND) {
+                let [ux, uy] = updateSand(x, y);
+                grid[x][y] = EMPTY;
+                grid[ux][uy] = SAND;
+            }
+        }
+    }
+}
 const render = () => {
     for (let x = 0; x < W; x++) {
         for (let y = 0; y < H; y++) {
             const c = colors[grid[x][y]];
             const i = (y * W + x) * 4;
-            pixels[i] = c[0];
-            pixels[i + 1] = c[1];
-            pixels[i + 2] = c[2];
-            pixels[i + 3] = 255;
+            pixels[i] = c[0];   // R
+            pixels[i + 1] = c[1]; // G
+            pixels[i + 2] = c[2]; // B
+            pixels[i + 3] = 255; // A
         }
     }
     ctx.putImageData(imageData, 0, 0);
     ctx.drawImage(c, 0, 0, W * SCALE, H * SCALE);
 }
+
+c.addEventListener('mousemove', (e) => {
+    const rect = c.getBoundingClientRect();
+
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    const x = Math.floor(mx / SCALE);
+    const y = Math.floor(my / SCALE);
+
+    if (x >= 0 && x < W && y >= 0 && y < H) {
+        grid[x][y] = SAND;
+    }
+});
 
 
 function engine() {
@@ -84,6 +128,6 @@ function engine() {
     requestAnimationFrame(engine);
 }
 
-engine();
+requestAnimationFrame(engine);
 
 
