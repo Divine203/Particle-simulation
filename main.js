@@ -16,17 +16,19 @@ const EMPTY = 0;
 const SAND = 1;
 const WATER = 2;
 const FIRE = 3;
+const CLAY = 4;
 
 const colors = {
     [EMPTY]: [0, 0, 0], // 0: []
     [SAND]: [194, 178, 128], // 1: []
-    [WATER]: [64, 164, 223] // 2: []
+    [WATER]: [64, 164, 223], // 2: []
+    [CLAY]: [33, 25, 17] // 3: []
 };
 
 const imageData = ctx.createImageData(W, H);
 const pixels = imageData.data;
 
-let currentMaterial = SAND;
+let currentMaterial =  EMPTY;
 
 const SAND_STEPS = 3;
 const WATER_STEPS = 5;
@@ -94,6 +96,12 @@ const updateWaterPos = (x, y) => {
 const updateFirePos = (x, y) => {
 
 }
+
+const updateClayPos = (x, y) => {
+    return [x, y];
+}
+
+
 const fallDist = Array.from({ length: W }, () => new Uint8Array(H));
 const MAX_STEP_SAND = 3; // max cells per frame
 const MAX_STEP_WATER = 2; // max cells per frame
@@ -194,13 +202,25 @@ c.addEventListener('mousemove', (e) => {
 
     if (cx < 0 || cx >= W || cy < 0 || cy >= H) return;
 
-    const radius = currentMaterial === WATER ? 6 : 2; // radius in cells
+    let radius = 2;
+    if (currentMaterial === WATER) radius = 6;
+    else if (currentMaterial === SAND) radius = 2;
+    else if (currentMaterial === CLAY || currentMaterial === EMPTY) radius = 4;
+
     for (let dx = -radius; dx <= radius; dx++) {
         for (let dy = -radius; dy <= radius; dy++) {
             const x = cx + dx;
             const y = cy + dy;
 
-            if (dx*dx + dy*dy <= radius*radius) { grid[x][y] = currentMaterial; }
+            if (dx * dx + dy * dy <= radius * radius) { 
+                if(grid[x][y] === EMPTY) {
+                    grid[x][y] = currentMaterial; 
+                } else {
+                    if(grid[x][y] == CLAY && currentMaterial == EMPTY) {
+                        grid[x][y] = currentMaterial; 
+                    }
+                }
+            }
         }
     }
 });
@@ -215,8 +235,13 @@ window.addEventListener('keydown', (e) => {
             currentMaterial = WATER;
             break;
         case '3':
-            currentMaterial = FIRE;
+            currentMaterial = CLAY;
             break;
+        case '5':
+            currentMaterial = EMPTY;
+            break;
+
+
     }
 });
 
