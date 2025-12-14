@@ -1,7 +1,7 @@
 const c = document.querySelector('#c');
 const ctx = c.getContext('2d');
 
-const SCALE = 5;
+const SCALE = 2;
 
 ctx.imageSmoothingEnabled = false;
 
@@ -28,8 +28,8 @@ const pixels = imageData.data;
 
 let currentMaterial = SAND;
 
-const SAND_STEPS = 1;
-const WATER_STEPS = 3;
+const SAND_STEPS = 3;
+const WATER_STEPS = 5;
 
 
 const getN = (x, y) => { // get neighbours
@@ -94,14 +94,33 @@ const updateWaterPos = (x, y) => {
 const updateFirePos = (x, y) => {
 
 }
+const fallDist = Array.from({ length: W }, () => new Uint8Array(H));
+const MAX_STEP_SAND = 3; // max cells per frame
+const MAX_STEP_WATER = 2; // max cells per frame
 
 const stepSand = () => {
     for (let y = H - 1; y >= 0; y--) {
         for (let x = 0; x < W; x++) {
             if (grid[x][y] === SAND) {
-                const [ux, uy] = updateSandPos(x, y);
+                let ux = x;
+                let uy = y;
+                let steps = Math.min(fallDist[x][y], MAX_STEP_SAND);
+
+                for (let s = 0; s < steps; s++) {
+                    const [nx, ny] = updateSandPos(ux, uy);
+                    if (nx === ux && ny === uy) break;
+                    ux = nx;
+                    uy = ny;
+                }
+
                 grid[x][y] = EMPTY;
                 grid[ux][uy] = SAND;
+
+                if (ux === x && uy === y) {
+                    fallDist[x][y] = 1;
+                } else {
+                    fallDist[ux][uy] = fallDist[x][y] + 1;
+                }
             }
         }
     }
@@ -111,9 +130,25 @@ const stepWater = () => {
     for (let y = H - 1; y >= 0; y--) {
         for (let x = 0; x < W; x++) {
             if (grid[x][y] === WATER) {
-                const [ux, uy] = updateWaterPos(x, y);
+                let ux = x;
+                let uy = y;
+                let steps = Math.min(fallDist[x][y], MAX_STEP_WATER);
+
+                for (let s = 0; s < steps; s++) {
+                    const [nx, ny] = updateWaterPos(ux, uy);
+                    if (nx === ux && ny === uy) break;
+                    ux = nx;
+                    uy = ny;
+                }
+
                 grid[x][y] = EMPTY;
                 grid[ux][uy] = WATER;
+
+                if (ux === x && uy === y) {
+                    fallDist[x][y] = 1;
+                } else {
+                    fallDist[ux][uy] = fallDist[x][y] + 1;
+                }
             }
         }
     }
@@ -127,23 +162,6 @@ const clear = () => {
 
 
 const update = () => {
-    // for (let y = H - 1; y >= 0; y--) {
-    //     for (let x = 0; x < W; x++) {
-    //         // // sand
-    //         // if (grid[x][y] === SAND) {
-    //         //     let [ux, uy] = updateSandPos(x, y);
-    //         //     grid[x][y] = EMPTY;
-    //         //     grid[ux][uy] = SAND;
-    //         // }
-
-    //         // if (grid[x][y] === WATER) {
-    //         //     let [ux, uy] = updateWaterPos(x, y);
-    //         //     grid[x][y] = EMPTY;
-    //         //     grid[ux][uy] = WATER;
-    //         // }
-
-    //     }
-    // }
     for (let i = 0; i < WATER_STEPS; i++) {
         stepWater();
     }
@@ -168,33 +186,25 @@ const render = () => {
 
 c.addEventListener('mousemove', (e) => {
     const rect = c.getBoundingClientRect();
-
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
 
-    const x = Math.floor(mx / SCALE);
-    const y = Math.floor(my / SCALE);
+    const cx = Math.floor(mx / SCALE);
+    const cy = Math.floor(my / SCALE);
 
-    if (x >= 0 && x < W && y >= 0 && y < H) {
-        grid[x][y] = currentMaterial;
+    if (cx < 0 || cx >= W || cy < 0 || cy >= H) return;
 
-        // if(currentMaterial === WATER) {
-        //     let c = currentMaterial
-        //     grid[x-1][y] = c;
-        //     grid[x+1][y] = c;
-        //     grid[x][y-1] = c;
-        //     grid[x][y+1] = c;
-        //     grid[x-1][y-1] = c;
-        //     grid[x-1][y+1] = c;
-        //     grid[x+1][y-1] = c;
-        //     grid[x+1][y+1] = c;
-        //     grid[x][y+2] = c;
-        //     grid[x][y-2] = c;
-        //     grid[x+2][y] = c;
-        //     grid[x-2][y] = c;
-        // }
+    const radius = currentMaterial === WATER ? 6 : 2; // radius in cells
+    for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+            const x = cx + dx;
+            const y = cy + dy;
+
+            if (dx*dx + dy*dy <= radius*radius) { grid[x][y] = currentMaterial; }
+        }
     }
 });
+
 
 window.addEventListener('keydown', (e) => {
     switch (e.key.toLowerCase()) {
