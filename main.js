@@ -5,10 +5,14 @@ const SCALE = 2;
 
 ctx.imageSmoothingEnabled = false;
 
-ctx.scale(SCALE, SCALE);
-
 const W = c.width / SCALE;
 const H = c.height / SCALE;
+
+const buffer = document.createElement('canvas');
+buffer.width = W;
+buffer.height = H;
+const bctx = buffer.getContext('2d');
+
 
 const grid = Array.from({ length: W }, () => new Uint8Array(H)); // [[]]
 const burnLife = Array.from({ length: W }, () => new Uint8Array(H));
@@ -470,8 +474,8 @@ const render = () => {
         }
     }
 
-    ctx.putImageData(imageData, 0, 0);
-    ctx.drawImage(c, 0, 0, W * SCALE, H * SCALE);
+    bctx.putImageData(imageData, 0, 0);
+    ctx.drawImage(buffer, 0, 0, W * SCALE, H * SCALE);
 };
 
 
@@ -489,7 +493,7 @@ c.addEventListener('mousemove', (e) => {
     if (currentMaterial === WATER) radius = 6;
     else if (currentMaterial === SAND) radius = 2;
     else if (currentMaterial === ACID) radius = 3;
-    else if (currentMaterial === CLAY || currentMaterial === EMPTY || currentMaterial === METAL) radius = 7;
+    else if (currentMaterial === CLAY || currentMaterial === METAL || currentMaterial === GAS) radius = 7;
 
     for (let dx = -radius; dx <= radius; dx++) {
         for (let dy = -radius; dy <= radius; dy++) {
@@ -506,6 +510,9 @@ c.addEventListener('mousemove', (e) => {
                         }
                         if (currentMaterial == ACID) {
                             acidLife[x][y] = 20 + Math.random() * 20; // frame
+                        }
+                        if (currentMaterial == GAS) {
+                            gasLife[x][y] = 20 + Math.random() * 20;
                         }
                     }
                 }
@@ -535,7 +542,10 @@ window.addEventListener('keydown', (e) => {
         case '6':
             currentMaterial = METAL;
             break;
-
+        case '7':
+            currentMaterial = GAS;
+            break;
+        
         case 'x':
             currentMaterial = null;
             break;
