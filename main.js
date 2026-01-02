@@ -49,7 +49,7 @@ const pixels = imageData.data;
 let currentMaterial = EMPTY;
 
 const SAND_STEPS = 3;
-const WATER_STEPS = 5;
+const WATER_STEPS = 3;
 const FIRE_STEPS = 4;
 const ACID_STEPS = 2;
 const GAS_STEPS = 2;
@@ -96,25 +96,39 @@ const updateSandPos = (x, y) => {
 };
 
 
+// const updateWaterPos = (x, y) => {
+//     if (isEmpty(x, y + 1)) {
+//         return [x, y + 1];          // down
+//     }
+//     if (isEmpty(x - 1, y + 1)) {
+//         return [x - 1, y + 1];      // down-left
+//     }
+//     if (isEmpty(x + 1, y + 1)) {
+//         return [x + 1, y + 1];      // down-right
+//     }
+//     if (isEmpty(x - 1, y)) { // left
+//         return [x - 1, y];
+//     }
+//     if (isEmpty(x + 1, y)) { // right
+//         return [x + 1, y];
+//     }
+
+//     return [x, y];
+// }
 const updateWaterPos = (x, y) => {
-    if (isEmpty(x, y + 1)) {
-        return [x, y + 1];          // down
-    }
-    if (isEmpty(x - 1, y + 1)) {
-        return [x - 1, y + 1];      // down-left
-    }
-    if (isEmpty(x + 1, y + 1)) {
-        return [x + 1, y + 1];      // down-right
-    }
-    if (isEmpty(x - 1, y)) { // left
-        return [x - 1, y];
-    }
-    if (isEmpty(x + 1, y)) { // right
-        return [x + 1, y];
-    }
+    if (isEmpty(x, y + 1)) return [x, y + 1];
+
+    const dir = Math.random() < 0.5 ? -1 : 1;
+
+    if (isEmpty(x + dir, y + 1)) return [x + dir, y + 1];
+    if (isEmpty(x - dir, y + 1)) return [x - dir, y + 1];
+
+    if (isEmpty(x + dir, y)) return [x + dir, y];
+    if (isEmpty(x - dir, y)) return [x - dir, y];
 
     return [x, y];
-}
+};
+
 
 const updateFirePos = (x, y) => {
     // up
@@ -187,6 +201,7 @@ const MAX_STEP_SAND = 3; // max cells per frame
 const MAX_STEP_WATER = 2; // max cells per frame
 const MAX_STEP_ACID = 1; // max cells per frame
 
+
 const stepSand = () => {
     for (let y = H - 1; y >= 0; y--) {
         for (let x = 0; x < W; x++) {
@@ -215,9 +230,17 @@ const stepSand = () => {
     }
 };
 
+let flip = false;
+
 const stepWater = () => {
+    flip = !flip;
+
+    const xStart = flip ? 0 : W - 1;
+    const xEnd = flip ? W : -1;
+    const xStep = flip ? 1 : -1;
+
     for (let y = H - 1; y >= 0; y--) {
-        for (let x = 0; x < W; x++) {
+       for (let x = xStart; x !== xEnd; x += xStep) {
             if (grid[x][y] === WATER) {
                 let ux = x;
                 let uy = y;
@@ -286,11 +309,7 @@ const burn = (x, y) => {
             // gas
             if (Math.random() < 0.05 && isEmpty(x, y - 1)) {
                 grid[x][y - 1] = GAS;
-                // grid[x + 1][y - 1] = GAS;
-                // grid[x - 1][y - 1] = GAS;
                 gasLife[x][y - 1] = 40;
-                // gasLife[x + 1][y - 1] = 40;
-                // gasLife[x - 1][y - 1] = 40;
             }
         }
     }
@@ -411,12 +430,75 @@ const stepAcid = () => {
     }
 };
 
-const clear = () => {
-    for (let x = 0; x < W; x++) grid[x].fill(EMPTY); // clear the canvas
+function loadPuzzleImage(url, onDone) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        // draw image scaled to your grid
+        ctx.drawImage(img, 0, 0, W, H);
+
+        const imgData = ctx.getImageData(0, 0, W, H).data;
+        onDone(imgData);
+    };
+    img.src = url;
+}
+
+function stampMetalFromImage(imgData) {
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            const i = (y * W + x) * 4;
+            const r = imgData[i];
+            const g = imgData[i + 1];
+            const b = imgData[i + 2];
+
+            // darkness threshold
+            const brightness = r + g + b;
+
+            if (brightness < 140) { // black-ish
+                grid[x][y] = METAL;
+            } else {
+                grid[x][y] = EMPTY;
+            }
+        }
+    }
+}
+
+loadPuzzleImage("puzzle 1.jpg", (imgData) => {
+    stampMetalFromImage(imgData);
+});
+
+function thickenMetal() {
+    const copy = grid.map(col => Uint8Array.from(col));
+
+    for (let x = 1; x < W - 1; x++) {
+        for (let y = 1; y < H - 1; y++) {
+            if (copy[x][y] === METAL) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        grid[x + dx][y + dy] = METAL;
+                    }
+                }
+            }
+        }
+    }
 }
 
 
 const update = () => {
+    grid[W / 2][30] = WATER;
+    grid[W / 2 + 1][30] = WATER;
+    grid[W / 2 + 2][30] = WATER;
+    // grid[W / 2][29] = WATER;
+    // grid[W / 2 + 1][29] = WATER;
+    // grid[W / 2 + 2][29] = WATER;
+    // grid[W / 2][29] = WATER;
+    // grid[W / 2 + 1][28] = WATER;
+    // grid[W / 2 + 2][28] = WATER;
     for (let i = 0; i < WATER_STEPS; i++) {
         stepWater();
     }
@@ -435,20 +517,6 @@ const update = () => {
         stepGas();
     }
 }
-// const render = () => {
-//     for (let x = 0; x < W; x++) {
-//         for (let y = 0; y < H; y++) {
-//             const c = colors[grid[x][y]];
-//             const i = (y * W + x) * 4;
-//             pixels[i] = c[0];   // R
-//             pixels[i + 1] = c[1]; // G
-//             pixels[i + 2] = c[2]; // B
-//             pixels[i + 3] = c[3] ?? 255; // A
-//         }
-//     }
-//     ctx.putImageData(imageData, 0, 0);
-//     ctx.drawImage(c, 0, 0, W * SCALE, H * SCALE);
-// }
 
 const GAS_MIN_ALPHA = 20; // minimum alpha (out of 255)
 const GAS_MAX_LIFE = 40;
@@ -545,7 +613,7 @@ window.addEventListener('keydown', (e) => {
         case '7':
             currentMaterial = GAS;
             break;
-        
+
         case 'x':
             currentMaterial = null;
             break;
@@ -557,8 +625,14 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+let thiccCount = 0;
 
 function engine() {
+    // if (thiccCount < 1) {
+    //     thickenMetal();
+    //     thiccCount++;
+    // }
+
     update();
     render();
     requestAnimationFrame(engine);

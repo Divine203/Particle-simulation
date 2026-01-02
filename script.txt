@@ -1,0 +1,264 @@
+VIDEO SCRIPT <CHANGE MATERIAL TO ELEMENT IN THE CODE>
+--------------
+
+INTRO
+-----
+
+Recently I came across, the game, Noita from Nova games, and i was really fascinated by the particle simulation. 
+
+I did some digging on how it was made and found it to be insanely simple. I honestly couldn't fathom how rules so simple could create such a complex enviroment. 
+
+Apparently their called celular automata, where in a grid world, you essentially account for every cell in the grid and simply modify each one based on the state of it's neighbouring cells.
+
+John conway's game of life is a classic example of this.
+
+So i thought <meme> WHAT IF </meme>. I made my own version of this using basic elements and just for fun try and use my solution to solve some of those "genius only" puzzles you see on the internet.
+
+Yes, We've all seen them and their quite annoying. 
+
+
+
+BODY
+-----
+We'll start with, creating a canvas and declaring it's width and height.
+
+This is gonna require alot of processing power. So we need to be as optimal as possible. 
+
+a way to do that is by lowering the resolution of the canvas, to make one cell equal to the smallest uniit of the canvas, a pixel.
+
+So we create like a smaller fake version, we'll call it buffer. 
+
+we create our grid, which is just a matrix or an array of arrays.
+
+And i want for us to draw on a pixel we just assign a number to a cell. So let's say we want a pixel at row 10 column 9. We just do grid[10][9] = 1. And it draws it there.
+
+So we create global variables. empty as 0 and sand as 1.
+
+define their colors in an object.
+
+then we create a render function that loops through the grid, get the color, assign it's rgb component to the imageData.
+
+We draw in our buffer context, and just project in the canvas.
+
+
+We create an update function to house our logic, and run everything in an engine loop.
+
+What?...Well ofcourse, you see nothing you idiot, we haven't drawn anything. But if i just do grid[0][0] = 1;
+
+we see our pixel top corner. Let's move it to the center, and yeah looks good.
+
+We ould actually increase the scale to make it bigger but the smaller the particle the better the effect.
+
+
+Now we need to begin declaring the elements and writing the rules for each one.
+
+SAND
+-----
+
+Let's start with Sand.
+
+It's rules are simple, 
+
+if the cell below is empty, go down, if the bottom is not empty but the bottom left is, move there. Same for the bottom right. 
+
+If all 3 cells are occupied, we just stay put.
+
+Let's start with a helper function that tells us if a cell is empty. 
+
+then we create an update function for sand and assign the rules.
+
+then finally we loop through our grid and call the update function for all sand particles. 
+
+To test i'll just spawn a sand particle at the top center every frame.
+
+
+And with just this, the result is quite interesting already. Also if you noticed, i added a border check in the empty function so we confine our particles within the canvas.
+
+WATER
+------
+
+The next is water.
+
+The rules of water or any other liquid are the same as sand initially, only that if the bottom 3 cells are occupied, it checks the cells at the left and right and occupies those ones if there is vacancy. 
+
+This is to create the illusion of flowing, where liquids will try to fill up any void in their vicinity.
+
+So we create similar variables and functions for water, but we just add these new rules.
+
+Also rather than just spawning the element, i want to be able to spawn as many anywhere in the canvas, to better visualize it.
+
+event listener ->
+---------------
+
+I'll create an event listener, for the mouse. And get its exact pixel coordinate. 
+
+add an edge case for borders.
+
+But So we can spawn more than one particle at a time. 
+
+I'll define a radius we'll use to make a ball of the particle.
+
+then using <research the radius formula used> we get all the pixels in the ball.
+
+add an extra check to <research>
+
+then just fill it up with the element. 
+
+then an extra event listener to switch between elements.
+
+
+I mean it works, But, it looks terrible. And its mostly because the particles are falling slowly at a constant speed. 
+
+So we need to add stuff like, gravity, speed, velocity etc.
+
+Let's add a variable call it gravity.
+
+Then we create a velocity value for each cell, so we can track a particle's speed and increase it as it falls down.
+
+then we create step values for each variable.
+
+a maximum step aswell.
+
+we delete this. (the update function logic).
+
+Then create step functions for each particle. 
+
+It will take the same loop we had initially, but this time we add additional velocity variable from our velocity matrix.
+
+then loop through the velocity, update our particle position. And finally we increment the velocity by gravity
+
+then in the update function we loop through the steps and call our step functions.
+
+<result>
+
+yeah that feels a lot better.
+
+But there's an issue. The water only tends to flow towwards the left, which is wrong, there's meant to be an even balance of flow on both sides.
+
+The issue is our update function is doing checks in a fixed order. So if left is empty, it doesn't bother with the rest and just moves left.
+
+So We can fix this by randomizing the direction of checks in our update function, and we also do the same thing in our step function by continously flipping the direction of the loop.
+
+Yeah much better
+
+Lets add our next material, clay. It wont be affected by gravity, or have a velocity. so no need for any update logic.
+
+Pretty sick <shows everything with clay>
+
+The one element i was really excited about was fire. During my research, everyone else's version was always this charcoal throwing type of fire thingy. And don't get me wrong,
+
+It looks amazing, but that's not really fire is it. Fire is more of an energy than a particle. I feel it makes more sense for it to be a flame, a state of heat rather than just another particle.
+
+Alright get comfortable guys, the Kitchen's about to get hotter. Get it, cause like we're doing fire, so its getting hott.... 
+
+Me 2: Just show them the code. *facepalm*
+
+
+So we start by adding fire to our elemnts, then we also add smoke or gas if you will which is just a by product of fire. 
+
+we add their step values, colors. And also a utility function to tell which elements are flammable.
+
+we also add a firelife, burnlife and gaslife for the each cell, this is so we can keep track and alter the durability of the elements. 
+
+it's update function, is a bit unique. 
+
+if the top cell is empty, go up. 
+
+But to really sell the effect. 
+
+we randomize a condition, so it goes diagoanally up in a random order
+
+we throw in a sideways flicker, cause...why not. 
+
+then here's the juicy part, we add a burn function. We get all the sorrounding neighbours.
+
+and for each of those neighbouring cells. 
+
+we check if it's flammable and if it's burn life is equals to 0.
+
+we want to also randomize the chances of the particle being ignited, similar to how you try to light a match but it doesn't burn till like the 6th strike.
+
+then we add to the burn life. This is so later in the step function we can decrease this value, and once it hits 0. It means the particle is burnt out and we remove it.
+
+And while we're at it, we throw in our gas.
+
+Now in the stepBurning function, we decrease all burnLife by 1.
+
+and once it gets to 0 we set the cell to empty. We'll also add a fire flicker as well.
+
+And for stepFire, we decrease the firelife, call our burn function and update the fire position. Lastly we include them in the update function.
+
+and add it to the switch controls.
+
+<results> 
+
+Let's make a clay container and just pour sand and water into it. 
+
+And this is where the magic happens, ladies and gents. Look at that... (fire)
+
+Let's torch the clay and see, 
+
+Aww thats so satisfying. However if you notice the gas is stationary for some reason...hmmm,
+
+ah right we didn't update the gas position
+
+*face palm meme*
+
+It's update function is very similar to fire, it goes up instead of down, has a random diagonal effect, and a sideways diffusion effect aswell.
+
+We create a step function for it aswell. And update it's position.
+
+I didn't run it in a step loop cause i don't want the gas going out too quickly.
+
+<result>
+
+looks good, but the gas is just goes up and disappears, which isn't ideal, we want it to fade away into the atmosphere. 
+
+The easiest way to do this, is to scrap the default alpha in our render function. 
+
+and we first of all check if its a gas. If it is, we get its current life and we use that value to determine the alpha of the pixel. 
+
+I prefer to just create a minimum and maximum alpha variables. 
+
+and set alpha to <research this `const alpha = Math.max(GAS_MIN_ALPHA, (life / GAS_MAX_LIFE) * 255);`>
+
+if it's not gas, we just leave it at the constant value.
+
+Much better.
+
+<result>
+
+Acid moves just like water except that its highly corrosive and will eat through most things.
+
+I think at this point you kinda see the pattern now. Acid's behaviour is sort of like the combination of water and fire. 
+
+Water for it's movement and fire for it's destruction. 
+
+Solid. 
+
+Speaking of solid let's throw in metal aswell. It's just like clay except it's not flammable or corrosive. Its just there on it's own.
+
+<result>
+
+That's pretty much it.
+
+<more result>
+
+For the puzzles. I decided it would be much easier and faster if we just read the pixels on the image and for every dark pixel we put a metal particle.
+
+Perfecto. 
+
+Let's start with the first puzzle
+
+Okay this is how we play, you guys should write down your prediction in the comments, then you see if you got it correctly.
+
+My prediction is number 1 gets filled up first.
+
+Okay, looks i was right...Wait number 2 looks like it's filling up faster. 
+
+Haha, Aright GG fair enough. If you went with number 2 then 10 points for you.
+
+Alright let's do the next puzzle.
+
+
+
