@@ -490,9 +490,9 @@ function thickenMetal() {
 
 
 const update = () => {
-    grid[W / 2][30] = WATER;
-    grid[W / 2 + 1][30] = WATER;
-    grid[W / 2 + 2][30] = WATER;
+    grid[W - 107][20] = WATER;
+    grid[W - 106][20] = WATER;
+    grid[W - 105][20] = WATER;
     // grid[W / 2][29] = WATER;
     // grid[W / 2 + 1][29] = WATER;
     // grid[W / 2 + 2][29] = WATER;
