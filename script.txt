@@ -98,9 +98,9 @@ But So we can spawn more than one particle at a time.
 
 I'll define a radius we'll use to make a ball of the particle.
 
-then using <research the radius formula used> we get all the pixels in the ball.
+then using the basic circle equation we get all the pixels in the ball.
 
-add an extra check to <research>
+add an extra check so we don’t write outside the grid, overwrite existing particles, or accidentally place nothing.
 
 then just fill it up with the element. 
 
@@ -220,7 +220,12 @@ and we first of all check if its a gas. If it is, we get its current life and we
 
 I prefer to just create a minimum and maximum alpha variables. 
 
-and set alpha to <research this `const alpha = Math.max(GAS_MIN_ALPHA, (life / GAS_MAX_LIFE) * 255);`>
+and map the gas lifetime directly to transparency.
+ 
+so it's opaque in the begining and becomes more transparent as it loses life
+
+`const alpha = Math.max(GAS_MIN_ALPHA, (life / GAS_MAX_LIFE) * 255);`
+
 
 if it's not gas, we just leave it at the constant value.
 
@@ -232,7 +237,7 @@ Acid moves just like water except that its highly corrosive and will eat through
 
 I think at this point you kinda see the pattern now. Acid's behaviour is sort of like the combination of water and fire. 
 
-Water for it's movement and fire for it's destruction. 
+Moves like water and destroys like fire.
 
 Solid. 
 
@@ -260,5 +265,34 @@ Haha, Aright GG fair enough. If you went with number 2 then 10 points for you.
 
 Alright let's do the next puzzle.
 
+This one definitely can't be A, cause there are a lot more holes.
+
+So it's going to be in this direction. It can't be C cause its going to be pouring in J by the time it gets here.
+
+And also for J its the same thing, it will pour into L once it gets here. 
+
+I'm going to take a wild guess and just say L. My second option would have been F. But let's go with L.
+
+
+Okay everything is going as i predicted. Okay, okay. Let's goooo...
+
+You get a hundred points if you got this one correctly. 
+
+This is so much fun tho. I feel like i could pitch this on shark tank or something.
+Babra = "I'm out"
+
+
+
+Hey, guys thanks so much for watching. I was honestly hoping i could post this before January, but stuff came up and yeah. It is what it is.
+
+I'm way too lazy to animate this part. So just bear with the audio. Big announcement i've actually made a huge breakthrough with the doom.js engine.
+
+I'll definitely post more details about it later on, and  once it's done. I'll start working on the video. 
+
+Thanks so much for a fantastic last year. We have a more projects lined up this year. So stay tuned for that. 
+
+Feel free to message on me twitter or X if you will, my DMs are always open. 
+
+Wishing you all a fantastic New Year. With all blessings from God almighty.
 
 
