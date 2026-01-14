@@ -6,7 +6,7 @@
 
 ## Setup
 
-  The `stageFiles` folder is stages of the simulation broken down into multiple files. 
+  The `stages` folder is stages of the simulation broken down into multiple files. 
   You can run anyone along with the `index.html` file. 
   
   The final engine code is in `main.js`
