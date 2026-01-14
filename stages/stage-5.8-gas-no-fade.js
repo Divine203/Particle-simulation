@@ -1,6 +1,6 @@
 const ctx = c.getContext('2d');
 
-const SCALE = 1;
+const SCALE = 2;
 
 ctx.imageSmoothingEnabled = false;
 
@@ -305,15 +305,7 @@ const render = () => {
             pixels[i] = c[0]; // r
             pixels[i + 1] = c[1]; // g
             pixels[i + 2] = c[2]; // b
-            // pixels[i + 3] = c[3] ?? 255; // aWe 
-
-            if (t === GAS) {
-                const life = gasLife[x][y];
-                const alpha = Math.max(GAS_MIN_ALPHA, (life / GAS_MAX_LIFE) * 255);
-                pixels[i + 3] = alpha;
-            } else {
-                pixels[i + 3] = c[3] ?? 255;
-            }
+            pixels[i + 3] = c[3] ?? 255; // aWe 
 
         }
     }
@@ -385,9 +377,6 @@ window.addEventListener('keydown', (e) => {
             break;
         case '4':
             currentMaterial = FIRE;
-            break;
-        case '5':
-            currentMaterial = ACID;
             break;
     }
 });

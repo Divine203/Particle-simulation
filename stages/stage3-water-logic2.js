@@ -135,7 +135,7 @@ c.addEventListener('mousemove', (e) => {
             const y = cy + dy;
 
             if (dx * dx + dy * dy <= radius * radius) {
-                if (grid[x] !== undefined && grid[x] !== null) {
+                if (grid[x] !== undefined && grid[x] !== null && currentMaterial !== EMPTY && currentMaterial !== undefined && currentMaterial !== null) {
                     if (grid[x][y] === EMPTY) {
                         grid[x][y] = currentMaterial;
                     }
