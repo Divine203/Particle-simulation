@@ -11,3 +11,4 @@
   
   The final engine code is in `main.js`
 
+  You will need to run with a liver server to load the puzzle images.
